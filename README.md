@@ -14,10 +14,10 @@ Caption Wars
 1.3 Members:
 
 Khoa Le
-Joshua Bell
-Andrew Lockwood
-Casey O’Connor
-Bryan O’Hagan
+Joshua Bell, 
+Andrew Lockwood, 
+Casey O’Connor, 
+Bryan O’Hagan, 
 Eric Thompson
 
 

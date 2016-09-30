@@ -34,7 +34,7 @@ In a “Caption Wars” on a platform like reddit, there is generally no winner.
 
 #####1.8 Risk Mitigation Plan
 1. Ensuring that the platforms share the same database and doing research beforehand to figure out the best implementation will be a necessity. 
-2. Focus on just web or mobile for the project
+2. Focus on completing a working version on one platform before working on the other.
 3. We must make sure to do a fair amount of marketing research on the popularity of sites similar to our product, and the average daily user numbers to provide a better estimate of how our design will perform in the marketplace. 
 4. We will set our product apart through the user experience and additional features.
 

@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "150933246304",
+    "firebase_url": "https://project-426870672605395942.firebaseio.com",
+    "project_id": "project-426870672605395942",
+    "storage_bucket": "project-426870672605395942.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:150933246304:android:a65ddfe68c39a961",
+        "android_client_info": {
+          "package_name": "khoa.p.le.capit"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "150933246304-nev0chdrsihg8vln9593ulq8lbvkl32u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3Skudw2B5r-9TuMZ5reEYUo9RB1Ihz3I"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

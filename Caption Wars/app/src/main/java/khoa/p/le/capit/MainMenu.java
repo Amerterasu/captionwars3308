@@ -1,13 +1,16 @@
 package khoa.p.le.capit;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -25,7 +28,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class MainMenu extends AppCompatActivity {
 
@@ -38,9 +45,13 @@ public class MainMenu extends AppCompatActivity {
     private ListView previewList;
     private ListAdapter adapter;
     private DatabaseReference previewRef;
+    private Button uploadImageButton;
+
+    static final int PICK_IMAGE = 1;
 
     public static class CaptionPreview{
         String Author,ImagePath;
+
         int Likes;
 
         public CaptionPreview(){}
@@ -65,10 +76,12 @@ public class MainMenu extends AppCompatActivity {
         mFirebaseUser = mAuth.getCurrentUser();
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReferenceFromUrl("gs://project-426870672605395942.appspot.com/");
-        userRef = storageRef.child("Users/Khoa/Caption.png");
+        userRef = storageRef.child("Users/Khoa/");
         previewRef = FirebaseDatabase.getInstance().getReference("Preview/");
 
+        //UI initialization
         previewList = (ListView) findViewById(R.id.preview_list);
+        uploadImageButton = (Button) findViewById((R.id.upload_button));
 
         //user not signed in
         if(mFirebaseUser == null){
@@ -78,7 +91,22 @@ public class MainMenu extends AppCompatActivity {
 
 
 
+        uploadImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
+                Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                getIntent.setType("image/*");
+
+                Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                pickIntent.setType("image/*");
+
+                Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {pickIntent});
+
+                startActivityForResult(chooserIntent, PICK_IMAGE);
+            }
+        });
         adapter= new FirebaseListAdapter<CaptionPreview>(this, CaptionPreview.class, R.layout.list_caption_item, previewRef) {
             @Override
             protected void populateView(View v, CaptionPreview model, int position) {
@@ -107,5 +135,34 @@ public class MainMenu extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == PICK_IMAGE && resultCode == Activity.RESULT_OK){
+
+            if(data==null){
+                return;
+            }
+            try {
+                InputStream inputStream = getContentResolver().openInputStream(data.getData());
+                StorageReference newEntry = userRef.child("team.jpg");
+                UploadTask uploadTask = newEntry.putStream(inputStream);
+
+                uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        Log.v("DOWNLOADURL", taskSnapshot.getDownloadUrl().getPath());
+                    }
+                });
+
+                Log.v("HERE", "we here boys");
+            }catch (FileNotFoundException e){
+                Log.e("INPUTERROR", "No such image", e);
+            }
+
+        }
     }
 }

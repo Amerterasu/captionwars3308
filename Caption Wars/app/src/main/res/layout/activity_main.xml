@@ -8,7 +8,8 @@
     tools:context="khoa.p.le.capit.MainActivity"
     android:orientation="vertical"
     android:id="@+id/caption_layout"
-    android:longClickable="true">
+    android:longClickable="true"
+    android:background="@drawable/background">
 
 
     <ImageView

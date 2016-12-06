@@ -11,13 +11,16 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -26,9 +29,14 @@ import com.firebase.ui.storage.images.FirebaseImageLoader;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.Exclude;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -41,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseUser mFirebaseUser;
     private FirebaseRecyclerAdapter<Caption, CaptionViewHolder> mAdapter;
     private DatabaseReference ref;
+    private DatabaseReference mDatabase;
     private StorageReference imageRef;
     private ImageView captionImage;
     private TextView authorText;
@@ -66,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mAuth.getCurrentUser();
         ref = FirebaseDatabase.getInstance().getReference("Caption/");
+        mDatabase = FirebaseDatabase.getInstance().getReference();
         imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(imagePath);
         if(mFirebaseUser == null){
             startActivity(new Intent(this, LoginActivity.class));
@@ -87,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         mRecycleView.setLayoutManager(linearLayoutManager);
 
         if (mAuth.getCurrentUser() != null) {
+
             //Recycler Adapter populates the recycler view
             mAdapter = new FirebaseRecyclerAdapter<Caption, CaptionViewHolder>(
                     Caption.class
@@ -94,11 +105,14 @@ public class MainActivity extends AppCompatActivity {
                     ,CaptionViewHolder.class,
                     ref
             ) {
+
                 @Override
                 protected void populateViewHolder(CaptionViewHolder viewHolder, Caption model, int position) {
                     Log.v(TAG, "Populating View");
-                    viewHolder.setName(model.getName());
-                    viewHolder.setText(model.getUid());
+                    viewHolder.setUsername(model.getUsername());
+                    viewHolder.setCaption(model.getCaption());
+                    viewHolder.incrementLikes(model);
+                    viewHolder.setCounter(Integer.toString(model.getLikes()));
                 }
             };
             mRecycleView.setAdapter(mAdapter);
@@ -106,9 +120,19 @@ public class MainActivity extends AppCompatActivity {
             sendButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    DatabaseReference newChild = ref.push();
-                    newChild.child("name").setValue(mFirebaseUser.getEmail());
-                    newChild.child("uid").setValue(commentEditText.getText().toString());
+                    String key = ref.push().getKey();
+
+                    String caption = commentEditText.getText().toString();
+                    String username = mFirebaseUser.getEmail();
+
+                    Caption newCap = new Caption(username, 0, caption, key);
+                    Map<String, Object> newCapValues = newCap.toMap();
+
+                    Map<String, Object> childUpdates = new HashMap<String, Object>();
+                    childUpdates.put("/Caption/"+key, newCapValues);
+
+                    mDatabase.updateChildren(childUpdates);
+
                     commentEditText.setText("");
                 }
             });
@@ -154,20 +178,40 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static class Caption{
-        String name, uid, captionName;
+        String username, caption, key;
+        int likes;
         Uri imageUrl;
         public Caption(){}
 
-        public Caption(String name, String uid){
-            this.name = name;
-            this.uid = uid;
+        public Caption(String username, int likes, String caption, String key){
+            this.caption = caption;
+            this.likes = likes;
+            this.username = username;
+            this.key = key;
+
         }
 
-        public String getName(){
-            return name;
+        public int getLikes(){
+            return likes;
         }
-        public String getUid(){
-            return uid;
+
+        public String getUsername(){
+            return username;
+        }
+        public String getCaption(){
+            return caption;
+        }
+        public String getKey(){return key;}
+
+        @Exclude
+        public Map<String, Object> toMap(){
+            HashMap<String, Object> result = new HashMap<>();
+            result.put("username", username);
+            result.put("caption", caption);
+            result.put("likes", likes);
+            result.put("key", key);
+
+            return result;
         }
     }
     public static class CaptionViewHolder extends RecyclerView.ViewHolder{
@@ -176,15 +220,43 @@ public class MainActivity extends AppCompatActivity {
         public CaptionViewHolder(View itemView) {
             super(itemView);
             mView = itemView;
+
         }
-        public void setName(String name) {
-            TextView field = (TextView) mView.findViewById(R.id.name_textView);
+        public void setUsername(String name) {
+            TextView field = (TextView) mView.findViewById(R.id.username_textview);
             field.setText(name);
         }
 
-        public void setText(String text) {
-            TextView field = (TextView) mView.findViewById(R.id.uid_textview);
+        public void setCaption(String text) {
+            TextView field = (TextView) mView.findViewById(R.id.caption_textview);
             field.setText(text);
+        }
+
+        public void setCounter(String count){
+            TextView counter = (TextView) mView.findViewById(R.id.like_counter_textview);
+            counter.setText(count);
+        }
+
+        public void incrementLikes(Caption data){
+            Button likeButton = (Button) mView.findViewById(R.id.like_button);
+
+            final Caption theData = data;
+            likeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    int currentLikes = theData.getLikes();
+                    int updated_likes = currentLikes + 1;
+                    DatabaseReference mRef = FirebaseDatabase.getInstance().getReference();
+                    TextView counter = (TextView) mView.findViewById(R.id.like_counter_textview);
+
+                    Caption newData = new Caption(theData.getUsername(), updated_likes, theData.getCaption(), theData.getKey());
+                    Map<String, Object> newCapValues = newData.toMap();
+                    Map<String, Object> childUpdates = new HashMap<String, Object>();
+                    childUpdates.put("/Caption/"+ theData.getKey(), newCapValues);
+                    mRef.updateChildren(childUpdates);
+                    counter.setText(Integer.toString(updated_likes));
+                }
+            });
         }
 
     }

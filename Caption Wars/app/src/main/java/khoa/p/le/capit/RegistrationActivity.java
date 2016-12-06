@@ -38,9 +38,11 @@ public class RegistrationActivity extends AppCompatActivity {
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 String emailStr = email.getText().toString();
                 String passwordStr = password.getText().toString();
                 String passwordConfrim = password_confirm.getText().toString();
+
                 if(emailStr != null && passwordStr != null && passwordConfrim != null){
                     if(passwordStr.equals(passwordConfrim)){
                         auth.createUserWithEmailAndPassword(emailStr, passwordStr).addOnCompleteListener(new OnCompleteListener<AuthResult>() {

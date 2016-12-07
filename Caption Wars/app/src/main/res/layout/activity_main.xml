@@ -24,7 +24,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/comments_recycleview"
         android:visibility="visible"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:scrollbars="none">
 
     </android.support.v7.widget.RecyclerView>
 

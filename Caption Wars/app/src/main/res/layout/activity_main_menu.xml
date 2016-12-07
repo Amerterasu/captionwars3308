@@ -11,7 +11,15 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="khoa.p.le.capit.MainMenu"
     android:orientation="vertical"
-    android:background="@drawable/background">
+    android:background="@drawable/background"
+    >
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:background="@drawable/captionlogo"
+        android:layout_width="200dp"
+        android:layout_height="119dp"
+        android:layout_gravity="center" />
 
     <Button
         android:text="Upload Image"
@@ -23,5 +31,7 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/preview_list" />
+        android:id="@+id/preview_list"
+        android:scrollbars="none"
+        android:divider="@null"/>
 </LinearLayout>
